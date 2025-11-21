@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIBS Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #ecfdf5; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background-color: #10b981; border-radius: 4px; }
+        .tab-btn.active {
+            background-color: #10b981;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex text-gray-800">
+
+    <div class="w-64 bg-white shadow-xl p-6 flex flex-col space-y-4 border-r border-green-200">
+        <h1 class="text-2xl font-bold text-green-700 tracking-wider">AIBS Admin</h1>
+        <p id="welcome-message" class="text-xs text-gray-500 mb-6">Loading...</p>
+
+        <nav class="flex flex-col space-y-2">
+            <button id="btn-overview" onclick="switchTab('overview')"
+                class="tab-btn flex items-center p-3 rounded-xl font-semibold text-gray-600 hover:bg-green-100 transition duration-150">
+                <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i> Overview
+            </button>
+            <button id="btn-users" onclick="switchTab('users')"
+                class="tab-btn flex items-center p-3 rounded-xl font-semibold text-gray-600 hover:bg-green-100 transition duration-150">
+                <i data-lucide="users" class="w-5 h-5 mr-3"></i> User Management
+            </button>
+            <button id="btn-transactions" onclick="switchTab('transactions')"
+                class="tab-btn flex items-center p-3 rounded-xl font-semibold text-gray-600 hover:bg-green-100 transition duration-150">
+                <i data-lucide="dollar-sign" class="w-5 h-5 mr-3"></i> Transactions
+            </button>
+            <button id="logoutBtn"
+                class="flex items-center p-3 rounded-xl font-semibold text-red-600 hover:bg-red-50 transition duration-150 mt-4">
+                <i data-lucide="log-out" class="w-5 h-5 mr-3"></i> Logout
+            </button>
+        </nav>
+    </div>
+
+    <main class="flex-1 p-8 overflow-y-auto">
+        
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content">
+            <h2 class="text-3xl font-extrabold mb-8 text-green-800">Dashboard Overview</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                <div class="p-5 bg-white rounded-2xl shadow-lg border border-green-200">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-medium text-gray-500">Active Users</p>
+                        <i data-lucide="activity" class="w-6 h-6 text-green-500"></i>
+                    </div>
+                    <div class="mt-1 flex items-end">
+                        <span id="stat-active-users" class="text-4xl font-bold text-green-700">0</span>
+                    </div>
+                </div>
+                <div class="p-5 bg-white rounded-2xl shadow-lg border border-green-200">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-medium text-gray-500">Total Revenue</p>
+                        <i data-lucide="wallet" class="w-6 h-6 text-green-500"></i>
+                    </div>
+                    <div class="mt-1 flex items-end">
+                        <span id="stat-total-revenue" class="text-4xl font-bold text-green-700">₹0</span>
+                    </div>
+                </div>
+                <div class="p-5 bg-white rounded-2xl shadow-lg border border-green-200">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-medium text-gray-500">Total Transactions</p>
+                        <i data-lucide="receipt" class="w-6 h-6 text-green-500"></i>
+                    </div>
+                    <div class="mt-1 flex items-end">
+                        <span id="stat-total-transactions" class="text-4xl font-bold text-green-700">0</span>
+                    </div>
+                </div>
+                <div class="p-5 bg-white rounded-2xl shadow-lg border border-green-200">
+                    <div class="flex items-center justify-between">
+                        <p class="text-sm font-medium text-gray-500">Blocked Accounts</p>
+                        <i data-lucide="lock" class="w-6 h-6 text-red-500"></i>
+                    </div>
+                    <div class="mt-1 flex items-end">
+                        <span id="stat-blocked-users" class="text-4xl font-bold text-red-700">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-2xl shadow-lg border border-green-200">
+                    <h3 class="text-xl font-semibold mb-4 text-green-700 border-b pb-2 border-green-100">User Type Breakdown</h3>
+                    <div class="flex justify-around items-center h-40">
+                        <div class="text-center p-4 bg-emerald-50 rounded-lg shadow-sm w-1/3">
+                            <p class="text-3xl font-bold text-emerald-600" id="stat-farmers">0</p>
+                            <p class="text-sm text-gray-500">Farmers</p>
+                        </div>
+                        <div class="text-center p-4 bg-yellow-50 rounded-lg shadow-sm w-1/3">
+                            <p class="text-3xl font-bold text-yellow-600" id="stat-vendors">0</p>
+                            <p class="text-sm text-gray-500">Vendors</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-2xl shadow-lg border border-green-200">
+                    <h3 class="text-xl font-semibold mb-4 text-green-700 border-b pb-2 border-green-100">Transaction Summary</h3>
+                    <div class="flex flex-col space-y-2 mt-4">
+                        <div class="flex justify-between p-2 bg-green-50 rounded-md">
+                            <span class="text-sm font-medium text-green-800">Successful Transactions</span>
+                            <span id="stat-successful-transactions" class="font-bold text-green-700">0</span>
+                        </div>
+                        <div class="flex justify-between p-2 bg-yellow-50 rounded-md">
+                            <span class="text-sm font-medium text-yellow-800">Pending Transactions</span>
+                            <span id="stat-pending-transactions" class="font-bold text-yellow-700">0</span>
+                        </div>
+                        <div class="flex justify-between p-2 bg-red-50 rounded-md">
+                            <span class="text-sm font-medium text-red-800">Failed Transactions</span>
+                            <span id="stat-failed-transactions" class="font-bold text-red-700">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="users" class="tab-content hidden">
+            <h2 class="text-3xl font-extrabold mb-6 text-green-800">User Management</h2>
+
+            <div class="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4 mb-6 p-4 bg-white rounded-xl shadow-md border border-green-200">
+                <input type="text" id="user-search" placeholder="Search by name, email..."
+                       class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                
+                <select id="user-type-filter" class="p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <option value="All">All Types</option>
+                    <option value="Farmer">Farmers</option>
+                    <option value="Vendor">Vendors</option>
+                </select>
+
+                <select id="user-status-filter" class="p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <option value="All">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="blocked">Blocked</option>
+                </select>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-green-200">
+                        <thead class="bg-green-50">
+                            <tr>
+                                <th class="p-3 text-left text-xs font-semibold text-green-800 uppercase">Name</th>
+                                <th class="p-3 text-left text-xs font-semibold text-green-800 uppercase">Email</th>
+                                <th class="p-3 text-left text-xs font-semibold text-green-800 uppercase">Type</th>
+                                <th class="p-3 text-left text-xs font-semibold text-green-800 uppercase">Status</th>
+                                <th class="p-3 text-left text-xs font-semibold text-green-800 uppercase">Last Login</th>
+                                <th class="p-3 text-left text-xs font-semibold text-green-800 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body" class="bg-white divide-y divide-gray-100">
+                            <tr><td colspan="6" class="p-4 text-center text-gray-500">Loading users...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transactions Tab -->
+        <div id="transactions" class="tab-content hidden">
+            <h2 class="text-3xl font-extrabold mb-6 text-green-800">System Transactions</h2>
+
+            <div class="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-4 mb-6 p-4 bg-white rounded-xl shadow-md border border-green-200">
+                <input type="text" id="transaction-search" placeholder="Search transactions..."
+                       class="flex-1 p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                
+                <select id="transaction-status-filter" class="p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                    <option value="All">All Statuses</option>
+                    <option value="Success">Success</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Failed">Failed</option>
+                </select>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-green-200">
+                        <thead class="bg-green-50">
+                            <tr>
+                                <th class="p-3 text-left text-xs font-semibold text-green-800 uppercase">TXN ID</th>
+                                <th class="p-3 text-left text-xs font-semibold text-green-800 uppercase">Crop</th>
+                                <th class="p-3 text-left text-xs font-semibold text-green-800 uppercase">Quantity</th>
+                                <th class="p-3 text-left text-xs font-semibold text-green-800 uppercase">Amount</th>
+                                <th class="p-3 text-left text-xs font-semibold text-green-800 uppercase">Status</th>
+                                <th class="p-3 text-left text-xs font-semibold text-green-800 uppercase">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactions-table-body" class="bg-white divide-y divide-gray-100">
+                            <tr><td colspan="6" class="p-4 text-center text-gray-500">Loading transactions...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <div class="bg-green-800 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3">
+            <i data-lucide="check-circle" class="w-5 h-5"></i>
+            <span id="toastMsg">Action successful!</span>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
+    <script>
+        let currentUser = null;
+        let usersData = [];
+        let transactionsData = [];
+
+        async function init() {
+            try {
+                currentUser = await api.getCurrentUser();
+                
+                if (currentUser.type !== 'Admin') {
+                    window.location.href = 'AdminLogin.html';
+                    return;
+                }
+
+                document.getElementById('welcome-message').textContent = `Welcome, ${currentUser.name}`;
+                
+                loadStats();
+                loadUsers();
+                loadTransactions();
+                
+                switchTab('overview');
+            } catch (err) {
+                window.location.href = 'AdminLogin.html';
+            }
+        }
+
+        async function loadStats() {
+            try {
+                const stats = await api.getAdminStats();
+                
+                document.getElementById('stat-active-users').textContent = stats.activeUsers;
+                document.getElementById('stat-blocked-users').textContent = stats.blockedUsers;
+                document.getElementById('stat-farmers').textContent = stats.farmers;
+                document.getElementById('stat-vendors').textContent = stats.vendors;
+                document.getElementById('stat-total-transactions').textContent = stats.totalTransactions;
+                document.getElementById('stat-successful-transactions').textContent = stats.successfulTransactions;
+                document.getElementById('stat-total-revenue').textContent = `₹${stats.totalRevenue.toFixed(2)}`;
+                document.getElementById('stat-pending-transactions').textContent = stats.pendingTransactions;
+                document.getElementById('stat-failed-transactions').textContent = stats.failedTransactions;
+            } catch (err) {
+                console.error('Error loading stats:', err);
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                usersData = await api.getUsers();
+                renderUsersTable();
+            } catch (err) {
+                console.error('Error loading users:', err);
+            }
+        }
+
+        async function loadTransactions() {
+            try {
+                transactionsData = await api.getTransactions();
+                renderTransactionsTable();
+            } catch (err) {
+                console.error('Error loading transactions:', err);
+            }
+        }
+
+        function renderUsersTable() {
+            const tableBody = document.getElementById('users-table-body');
+            const searchInput = document.getElementById('user-search');
+            const typeSelect = document.getElementById('user-type-filter');
+            const statusSelect = document.getElementById('user-status-filter');
+
+            const searchTerm = (searchInput?.value || '').toLowerCase();
+            const filterType = typeSelect?.value || 'All';
+            const filterStatus = statusSelect?.value || 'All';
+
+            const filtered = usersData.filter(user => {
+                const matchesSearch = !searchTerm || 
+                    user.name.toLowerCase().includes(searchTerm) || 
+                    user.email.toLowerCase().includes(searchTerm);
+                const matchesType = filterType === 'All' || user.type === filterType;
+                const matchesStatus = filterStatus === 'All' || user.status === filterStatus;
+                return matchesSearch && matchesType && matchesStatus;
+            });
+
+            tableBody.innerHTML = '';
+
+            if (filtered.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">No users found</td></tr>';
+                return;
+            }
+
+            filtered.forEach(user => {
+                const isBlocked = user.status === 'blocked';
+                const statusColor = isBlocked ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800';
+                const typeColor = user.type === 'Farmer' ? 'bg-emerald-100 text-emerald-800' : 
+                                 user.type === 'Vendor' ? 'bg-yellow-100 text-yellow-800' : 
+                                 'bg-blue-100 text-blue-800';
+
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-green-50 transition';
+                row.innerHTML = `
+                    <td class="p-3 text-sm font-medium text-gray-700">${user.name}</td>
+                    <td class="p-3 text-sm text-gray-600">${user.email}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 text-xs font-semibold rounded-full ${typeColor}">${user.type}</span>
+                    </td>
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 text-xs font-semibold rounded-full ${statusColor}">${user.status}</span>
+                    </td>
+                    <td class="p-3 text-sm text-gray-600">${user.last_login ? new Date(user.last_login).toLocaleString() : 'Never'}</td>
+                    <td class="p-3">
+                        ${user.type !== 'Admin' ? `
+                        <button onclick="toggleUserStatus(${user.id}, '${user.status}')"
+                            class="text-xs font-medium py-1 px-3 rounded-full transition shadow-sm
+                            ${isBlocked ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-red-600 hover:bg-red-700 text-white'}">
+                            ${isBlocked ? 'Unblock' : 'Block'}
+                        </button>
+                        ` : '<span class="text-xs text-gray-400">Admin</span>'}
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function renderTransactionsTable() {
+            const tableBody = document.getElementById('transactions-table-body');
+            const searchInput = document.getElementById('transaction-search');
+            const statusSelect = document.getElementById('transaction-status-filter');
+
+            const searchTerm = (searchInput?.value || '').toLowerCase();
+            const filterStatus = statusSelect?.value || 'All';
+
+            const filtered = transactionsData.filter(tx => {
+                const matchesSearch = !searchTerm || 
+                    tx.crop.toLowerCase().includes(searchTerm) ||
+                    tx.id.toString().includes(searchTerm);
+                const matchesStatus = filterStatus === 'All' || tx.status === filterStatus;
+                return matchesSearch && matchesStatus;
+            });
+
+            tableBody.innerHTML = '';
+
+            if (filtered.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">No transactions found</td></tr>';
+                return;
+            }
+
+            filtered.forEach(tx => {
+                const statusColor = tx.status === 'Success' ? 'bg-green-100 text-green-800' :
+                                   tx.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                                   'bg-red-100 text-red-800';
+
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-green-50 transition';
+                row.innerHTML = `
+                    <td class="p-3 text-sm font-medium text-gray-700">#${tx.id}</td>
+                    <td class="p-3 text-sm text-gray-600">${tx.crop}</td>
+                    <td class="p-3 text-sm text-gray-600">${tx.quantity_kg} kg</td>
+                    <td class="p-3 text-sm text-gray-600 font-semibold">₹${tx.amount.toFixed(2)}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 text-xs font-semibold rounded-full ${statusColor}">${tx.status}</span>
+                    </td>
+                    <td class="p-3 text-sm text-gray-600">${new Date(tx.timestamp).toLocaleString()}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        window.toggleUserStatus = async (userId, currentStatus) => {
+            const newStatus = currentStatus === 'active' ? 'blocked' : 'active';
+            
+            if (!confirm(`Are you sure you want to ${newStatus} this user?`)) {
+                return;
+            }
+
+            try {
+                await api.updateUser(userId, { status: newStatus });
+                showToast(`User ${newStatus} successfully!`);
+                loadUsers();
+                loadStats();
+            } catch (err) {
+                showToast('Failed to update user status', 'error');
+            }
+        };
+
+        window.switchTab = (tabId) => {
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(tabId)?.classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`btn-${tabId}`)?.classList.add('active');
+        };
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await api.logout();
+            window.location.href = 'AdminLogin.html';
+        });
+
+        document.getElementById('user-search')?.addEventListener('input', renderUsersTable);
+        document.getElementById('user-type-filter')?.addEventListener('change', renderUsersTable);
+        document.getElementById('user-status-filter')?.addEventListener('change', renderUsersTable);
+        document.getElementById('transaction-search')?.addEventListener('input', renderTransactionsTable);
+        document.getElementById('transaction-status-filter')?.addEventListener('change', renderTransactionsTable);
+
+        init();
+        setInterval(loadStats, 10000);
+        setInterval(loadUsers, 15000);
+        setInterval(loadTransactions, 15000);
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>
