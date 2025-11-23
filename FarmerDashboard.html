@@ -162,7 +162,7 @@
             <div class="md:col-span-8 dashboard-card bg-white rounded-xl shadow-sm border border-green-100">
                 <div class="p-6 border-b border-gray-100 flex justify-between items-center">
                     <h2 class="text-lg font-bold text-green-900">Agri-Store</h2>
-                    <span class="text-xs text-gray-400">Live supplies from vendors</span>
+                    <span class="text-xs text-gray-400">Products & Services from vendors</span>
                 </div>
                 <div id="suppliesGrid" class="p-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <p class="col-span-3 text-sm text-gray-400 text-center">Loading supplies...</p>
@@ -200,39 +200,27 @@
         </div>
     </div>
 
-    <!-- Purchase Confirmation Modal -->
-    <div id="purchaseModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all">
-            <div class="flex justify-between items-start mb-4">
-                <h3 class="text-xl font-bold text-gray-900">Confirm Purchase</h3>
-                <button onclick="closePurchaseModal()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fa-solid fa-times text-xl"></i>
+    <!-- Product Details Modal -->
+    <div id="productModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full my-8 transform transition-all">
+            <div class="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl flex justify-between items-start z-10">
+                <h3 id="modalProductName" class="text-2xl font-bold text-green-800">Product Details</h3>
+                <button onclick="closeProductModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                    <i class="fa-solid fa-times text-2xl"></i>
                 </button>
             </div>
-            <div class="mb-6">
-                <div class="bg-green-50 rounded-lg p-4 mb-4">
-                    <p class="text-sm text-gray-600 mb-2">Item:</p>
-                    <p id="modalItemName" class="text-lg font-bold text-gray-900">Product Name</p>
-                    <p class="text-sm text-gray-600 mt-3 mb-1">Price:</p>
-                    <p id="modalItemPrice" class="text-2xl font-bold text-green-700">₹0</p>
+            <div id="modalContent" class="p-6 space-y-6">
+                <div class="flex justify-center">
+                    <div class="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-                    <input type="number" id="purchaseQuantity" value="1" min="1" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-green-500 focus:border-green-500">
-                </div>
-                <div class="bg-gray-50 rounded-lg p-3">
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm font-medium text-gray-600">Total Amount:</span>
-                        <span id="modalTotalAmount" class="text-xl font-bold text-green-700">₹0</span>
-                    </div>
-                </div>
+                <p class="text-center text-gray-500">Loading product details...</p>
             </div>
-            <div class="flex gap-3">
-                <button onclick="closePurchaseModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium transition-colors">
-                    Cancel
+            <div class="border-t border-gray-200 p-6 bg-gray-50 rounded-b-2xl flex gap-3">
+                <button onclick="closeProductModal()" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 font-medium">
+                    Close
                 </button>
-                <button onclick="confirmPurchase()" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors">
-                    Confirm Purchase
+                <button id="modalBuyBtn" onclick="handleModalPurchase()" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium">
+                    Purchase Now
                 </button>
             </div>
         </div>
@@ -240,7 +228,12 @@
 
     <script src="api.js"></script>
     <script>
+        const SHEET_ID = '1RAYTayHU38-bgiSNFWFnN6Q0RXI1Jg0FhDMPe_b6H8k';
+        const SHEET_NAME = 'Services%20data';
+        const SHEET_GID = '2';
+
         let currentUser = null;
+        let currentProductData = null;
 
         async function init() {
             try {
@@ -305,24 +298,19 @@
                 }
 
                 supplies.forEach(s => {
-                    const badgeClass = s.category === 'Fertilizer' ? 'bg-blue-100 text-blue-800' :
-                                      s.category === 'Pesticide' ? 'bg-yellow-100 text-yellow-800' :
-                                      'bg-green-100 text-green-800';
                     const div = document.createElement('div');
-                    div.className = 'border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow text-center';
+                    div.className = 'border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer group';
+                    div.onclick = () => viewProductDetails(s.category, s.name, s.price, s.vendor_name);
                     div.innerHTML = `
-                        <div class="h-24 w-full bg-gray-100 rounded-md mb-3 flex items-center justify-center text-4xl">
+                        <div class="h-24 w-full bg-gradient-to-br from-green-50 to-green-100 rounded-md mb-3 flex items-center justify-center text-4xl group-hover:scale-105 transition-transform">
                             🌿
                         </div>
-                        <h3 class="font-semibold text-gray-800">${s.name}</h3>
-                        <p class="text-gray-500 text-xs mb-3 flex items-center justify-center gap-2">
-                            <span class="px-2 py-0.5 rounded-full text-[11px] ${badgeClass}">${s.category}</span>
-                            <span class="text-gray-400">by ${s.vendor_name}</span>
-                        </p>
+                        <h3 class="font-semibold text-gray-800 mb-1">${s.name}</h3>
+                        <p class="text-xs text-gray-500 mb-3">by ${s.vendor_name}</p>
                         <div class="flex items-center justify-between">
-                            <span class="font-bold text-green-700">₹ ${s.price}</span>
-                            <button onclick="buySupply('${s.name}', ${s.price})" class="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded hover:bg-green-200 transition-colors">
-                                Buy
+                            <span class="font-bold text-green-700 text-lg">₹${s.price}</span>
+                            <button class="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded hover:bg-green-200 transition-colors font-medium">
+                                View Details
                             </button>
                         </div>
                     `;
@@ -332,6 +320,104 @@
                 console.error('Error loading supplies:', err);
             }
         }
+
+        async function viewProductDetails(columnLetter, productName, price, vendorName) {
+            const modal = document.getElementById('productModal');
+            const modalContent = document.getElementById('modalContent');
+            document.getElementById('modalProductName').textContent = productName;
+            
+            currentProductData = { columnLetter, productName, price, vendorName };
+            
+            modal.classList.remove('hidden');
+            modalContent.innerHTML = `
+                <div class="flex justify-center">
+                    <div class="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+                <p class="text-center text-gray-500">Loading product details...</p>
+            `;
+
+            try {
+                const tq = encodeURIComponent(`select ${columnLetter} limit 4 offset 1`);
+                const API_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&gid=${SHEET_GID}&tq=${tq}`;
+                
+                const response = await fetch(API_URL);
+                const text = await response.text();
+                const jsonText = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+                const data = JSON.parse(jsonText);
+
+                if (data.status === 'ok' && data.table && data.table.rows.length >= 4) {
+                    const rows = data.table.rows;
+                    const getValue = (rowIndex) => {
+                        const cell = rows[rowIndex] && rows[rowIndex].c[0];
+                        return cell && cell.v !== null ? cell.v : 'N/A';
+                    };
+
+                    const name = getValue(0);
+                    const purpose = getValue(1);
+                    const description = getValue(2);
+                    const imageUrl = getValue(3);
+
+                    modalContent.innerHTML = `
+                        <div class="space-y-4">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <img src="${imageUrl}" 
+                                     alt="${name}" 
+                                     class="w-full h-64 object-cover rounded-lg shadow-md"
+                                     onerror="this.src='https://placehold.co/600x400/cccccc/333333?text=Image+Not+Available';">
+                            </div>
+                            
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <p class="font-semibold text-green-700 mb-2">Purpose:</p>
+                                <p class="text-gray-700">${purpose}</p>
+                            </div>
+                            
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <p class="font-semibold text-green-700 mb-2">Description:</p>
+                                <p class="text-gray-700">${description}</p>
+                            </div>
+
+                            <div class="bg-gray-100 p-4 rounded-lg flex justify-between items-center">
+                                <div>
+                                    <p class="text-sm text-gray-600">Offered by</p>
+                                    <p class="font-semibold text-gray-800">${vendorName}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm text-gray-600">Price</p>
+                                    <p class="text-2xl font-bold text-green-700">₹${price}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    modalContent.innerHTML = `
+                        <div class="text-center py-8">
+                            <i class="fa-solid fa-exclamation-triangle text-5xl text-yellow-500 mb-4"></i>
+                            <p class="text-gray-600">Could not load product details from the sheet.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error fetching product details:', error);
+                modalContent.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fa-solid fa-exclamation-circle text-5xl text-red-500 mb-4"></i>
+                        <p class="text-gray-600">Error loading product details.</p>
+                    </div>
+                `;
+            }
+        }
+
+        window.closeProductModal = function() {
+            document.getElementById('productModal').classList.add('hidden');
+            currentProductData = null;
+        };
+
+        window.handleModalPurchase = function() {
+            if (currentProductData) {
+                closeProductModal();
+                showToast(`Purchase request sent for ${currentProductData.productName} (₹${currentProductData.price})`);
+            }
+        };
 
         async function loadEarnings() {
             try {
@@ -365,10 +451,6 @@
             window.location.href = 'FarmerLogin.html';
         });
 
-        window.buySupply = function(itemName, price) {
-            showToast(`Added ${itemName} (₹${price}) to cart`);
-        };
-
         function showToast(message) {
             const toast = document.getElementById('toast');
             document.getElementById('toastMsg').textContent = message;
@@ -377,7 +459,7 @@
         }
 
         init();
-        setInterval(loadListings, 5000); // Refresh every 5 seconds
+        setInterval(loadListings, 5000);
         setInterval(loadSupplies, 10000);
     </script>
 </body>

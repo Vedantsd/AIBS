@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIBS | Product Catalog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .product-card {
+            transition: all 0.3s ease;
+        }
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-green-50 to-green-100 min-h-screen">
+
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="index.html" class="flex items-center gap-2 text-green-700 font-bold text-xl">
+                        <i class="fa-solid fa-leaf text-2xl"></i>
+                        <span>AIBS Product Catalog</span>
+                    </a>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="index.html" class="text-sm text-gray-600 hover:text-green-600 font-medium">
+                        <i class="fa-solid fa-home mr-1"></i> Home
+                    </a>
+                    <a href="FarmerLogin.html" class="text-sm text-gray-600 hover:text-green-600 font-medium">
+                        Farmer Login
+                    </a>
+                    <a href="VendorLogin.html" class="text-sm text-gray-600 hover:text-green-600 font-medium">
+                        Vendor Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-black text-green-800 mb-3">Agricultural Products & Services</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                Browse our comprehensive catalog of organic fertilizers, precision farming equipment, and logistics services
+            </p>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8 flex flex-col sm:flex-row gap-4">
+            <div class="flex-1">
+                <input type="text" id="searchInput" placeholder="Search products..." 
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+            </div>
+            <select id="categoryFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500">
+                <option value="">All Categories</option>
+                <option value="fertilizer">Organic Fertilizers</option>
+                <option value="equipment">Farm Equipment</option>
+                <option value="services">Logistics Services</option>
+            </select>
+        </div>
+
+        <!-- Products Grid -->
+        <div id="productsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="col-span-full flex justify-center py-12">
+                <div class="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Product Detail Modal -->
+    <div id="productModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full my-8">
+            <div class="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl flex justify-between items-start z-10">
+                <h3 id="modalTitle" class="text-2xl font-bold text-green-800">Product Details</h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                    <i class="fa-solid fa-times text-2xl"></i>
+                </button>
+            </div>
+            <div id="modalContent" class="p-6">
+                <div class="flex justify-center py-8">
+                    <div class="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+            </div>
+            <div class="border-t border-gray-200 p-6 bg-gray-50 rounded-b-2xl">
+                <button onclick="closeModal()" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 font-medium">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SHEET_ID = '1RAYTayHU38-bgiSNFWFnN6Q0RXI1Jg0FhDMPe_b6H8k';
+        const SHEET_NAME = 'Services%20data';
+        const SHEET_GID = '2';
+
+        const PRODUCTS = [
+            { col: 'B', name: 'Compost', category: 'fertilizer' },
+            { col: 'C', name: 'Vermicompost', category: 'fertilizer' },
+            { col: 'D', name: 'Green manure', category: 'fertilizer' },
+            { col: 'E', name: 'Seaweed extract', category: 'fertilizer' },
+            { col: 'F', name: 'Fish emulsion', category: 'fertilizer' },
+            { col: 'G', name: 'Bone meal', category: 'fertilizer' },
+            { col: 'H', name: 'Drones', category: 'equipment' },
+            { col: 'I', name: 'Soil moisture sensors', category: 'equipment' },
+            { col: 'J', name: 'Precision seeding equipment', category: 'equipment' },
+            { col: 'K', name: 'IoT farm monitoring', category: 'equipment' },
+            { col: 'L', name: 'Automatic irrigation system', category: 'equipment' },
+            { col: 'M', name: 'GIS mapping tools', category: 'equipment' },
+            { col: 'N', name: 'Inter-state agri-cargo', category: 'services' },
+            { col: 'O', name: 'Smart tractors', category: 'equipment' },
+            { col: 'P', name: 'Cold-chain logistics', category: 'services' },
+            { col: 'Q', name: 'Last-mile agri-delivery', category: 'services' },
+            { col: 'R', name: 'Bulk commodity transport', category: 'services' },
+            { col: 'S', name: 'Reefer van services', category: 'services' }
+        ];
+
+        let allProducts = [];
+
+        async function loadProducts() {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = '<div class="col-span-full flex justify-center py-12"><div class="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div></div>';
+
+            allProducts = PRODUCTS;
+            renderProducts(allProducts);
+        }
+
+        function renderProducts(products) {
+            const grid = document.getElementById('productsGrid');
+            grid.innerHTML = '';
+
+            if (products.length === 0) {
+                grid.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">No products found</div>';
+                return;
+            }
+
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer';
+                card.onclick = () => viewProduct(product.col, product.name);
+
+                const icon = product.category === 'fertilizer' ? '🌱' : 
+                            product.category === 'equipment' ? '🚜' : '🚚';
+
+                card.innerHTML = `
+                    <div class="h-48 bg-gradient-to-br from-green-100 to-green-200 flex items-center justify-center text-6xl">
+                        ${icon}
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">${product.name}</h3>
+                        <p class="text-sm text-gray-600 mb-4 capitalize">
+                            <i class="fa-solid fa-tag mr-1"></i> ${product.category}
+                        </p>
+                        <button class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors">
+                            View Details
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        async function viewProduct(columnLetter, productName) {
+            const modal = document.getElementById('productModal');
+            const modalContent = document.getElementById('modalContent');
+            document.getElementById('modalTitle').textContent = productName;
+            
+            modal.classList.remove('hidden');
+            modalContent.innerHTML = '<div class="flex justify-center py-8"><div class="w-16 h-16 border-4 border-green-600 border-t-transparent rounded-full animate-spin"></div></div>';
+
+            try {
+                const tq = encodeURIComponent(`select ${columnLetter} limit 4 offset 1`);
+                const API_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}&gid=${SHEET_GID}&tq=${tq}`;
+                
+                const response = await fetch(API_URL);
+                const text = await response.text();
+                const jsonText = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+                const data = JSON.parse(jsonText);
+
+                if (data.status === 'ok' && data.table && data.table.rows.length >= 4) {
+                    const rows = data.table.rows;
+                    const getValue = (rowIndex) => {
+                        const cell = rows[rowIndex] && rows[rowIndex].c[0];
+                        return cell && cell.v !== null ? cell.v : 'N/A';
+                    };
+
+                    const name = getValue(0);
+                    const purpose = getValue(1);
+                    const description = getValue(2);
+                    const imageUrl = getValue(3);
+
+                    modalContent.innerHTML = `
+                        <div class="space-y-6">
+                            <div class="bg-gray-50 rounded-lg overflow-hidden">
+                                <img src="${imageUrl}" 
+                                     alt="${name}" 
+                                     class="w-full h-80 object-cover"
+                                     onerror="this.src='https://placehold.co/800x600/cccccc/333333?text=${encodeURIComponent(name)}';">
+                            </div>
+                            
+                            <div>
+                                <h4 class="text-lg font-bold text-green-700 mb-2">Purpose</h4>
+                                <p class="text-gray-700 bg-green-50 p-4 rounded-lg">${purpose}</p>
+                            </div>
+                            
+                            <div>
+                                <h4 class="text-lg font-bold text-green-700 mb-2">Description</h4>
+                                <p class="text-gray-700 bg-green-50 p-4 rounded-lg">${description}</p>
+                            </div>
+
+                            <div class="bg-green-100 p-4 rounded-lg border-l-4 border-green-600">
+                                <p class="text-sm text-green-800">
+                                    <i class="fa-solid fa-info-circle mr-2"></i>
+                                    To purchase this product, please login as a Farmer or contact a vendor.
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    modalContent.innerHTML = `
+                        <div class="text-center py-8">
+                            <i class="fa-solid fa-exclamation-triangle text-5xl text-yellow-500 mb-4"></i>
+                            <p class="text-gray-600">Product details not available</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                modalContent.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fa-solid fa-exclamation-circle text-5xl text-red-500 mb-4"></i>
+                        <p class="text-gray-600">Error loading product details</p>
+                    </div>
+                `;
+            }
+        }
+
+        window.closeModal = function() {
+            document.getElementById('productModal').classList.add('hidden');
+        };
+
+        // Search and filter
+        document.getElementById('searchInput').addEventListener('input', filterProducts);
+        document.getElementById('categoryFilter').addEventListener('change', filterProducts);
+
+        function filterProducts() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
+
+            const filtered = allProducts.filter(product => {
+                const matchesSearch = product.name.toLowerCase().includes(searchTerm);
+                const matchesCategory = !category || product.category === category;
+                return matchesSearch && matchesCategory;
+            });
+
+            renderProducts(filtered);
+        }
+
+        loadProducts();
+    </script>
+
+</body>
+</html>

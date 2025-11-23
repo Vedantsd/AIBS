@@ -95,31 +95,41 @@
                 <div class="dashboard-card bg-white rounded-xl shadow-sm border border-green-100">
                     <div class="p-5 border-b border-gray-100">
                         <h2 class="text-lg font-bold text-green-900 flex items-center">
-                            <i class="fa-solid fa-flask mr-2 text-green-600"></i> Sell Supplies
+                            <i class="fa-solid fa-flask mr-2 text-green-600"></i> List Product/Service
                         </h2>
-                        <p class="text-xs text-gray-500">List Pesticides or Fertilizers for farmers.</p>
+                        <p class="text-xs text-gray-500">Select from available products and set your price.</p>
                     </div>
                     <form id="addProductForm" class="p-5 space-y-4">
                         <div>
-                            <label class="block text-xs font-medium text-gray-700 mb-1">Product Name</label>
-                            <input type="text" id="pName" placeholder="e.g. Urea Gold 50kg" class="w-full border-gray-300 rounded-md focus:border-green-500 focus:ring-green-200 border p-2 text-sm" required>
+                            <label class="block text-xs font-medium text-gray-700 mb-2">Select Product/Service</label>
+                            <select id="productSelect" class="w-full border-gray-300 rounded-md focus:border-green-500 border p-2 text-sm" required>
+                                <option value="">Choose a product...</option>
+                                <option value="B">Compost</option>
+                                <option value="C">Vermicompost</option>
+                                <option value="D">Green manure</option>
+                                <option value="E">Seaweed extract</option>
+                                <option value="F">Fish emulsion</option>
+                                <option value="G">Bone meal</option>
+                                <option value="H">Drones</option>
+                                <option value="I">Soil moisture sensors</option>
+                                <option value="J">Precision seeding equipment</option>
+                                <option value="K">IoT farm monitoring</option>
+                                <option value="L">Automatic irrigation system</option>
+                                <option value="M">GIS mapping tools</option>
+                                <option value="N">Inter-state agri-cargo</option>
+                                <option value="O">Smart tractors</option>
+                                <option value="P">Cold-chain logistics</option>
+                                <option value="Q">Last-mile agri-delivery</option>
+                                <option value="R">Bulk commodity transport</option>
+                                <option value="S">Reefer van services</option>
+                            </select>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Category</label>
-                                <select id="pCat" class="w-full border-gray-300 rounded-md focus:border-green-500 border p-2 text-sm">
-                                    <option value="Fertilizer">Fertilizer</option>
-                                    <option value="Pesticide">Pesticide</option>
-                                    <option value="Seeds">Seeds</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 mb-1">Price (₹)</label>
-                                <input type="number" id="pPrice" placeholder="0" class="w-full border-gray-300 rounded-md focus:border-green-500 border p-2 text-sm" required>
-                            </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">Your Price (₹)</label>
+                            <input type="number" id="pPrice" placeholder="Enter your price" class="w-full border-gray-300 rounded-md focus:border-green-500 border p-2 text-sm" required>
                         </div>
                         <button type="submit" class="w-full bg-green-700 hover:bg-green-800 text-white font-medium py-2 px-4 rounded-lg shadow transition-colors text-sm">
-                            <i class="fa-solid fa-plus mr-1"></i> Add to Store
+                            <i class="fa-solid fa-plus mr-1"></i> List Product
                         </button>
                     </form>
                 </div>
@@ -132,9 +142,9 @@
                         <table class="w-full text-left text-sm">
                             <thead class="bg-green-50 text-green-800 text-xs uppercase">
                                 <tr>
-                                    <th class="px-5 py-3">Item</th>
+                                    <th class="px-5 py-3">Product</th>
                                     <th class="px-5 py-3">Price</th>
-                                    <th class="px-5 py-3">Cat</th>
+                                    <th class="px-5 py-3">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="inventoryTable" class="divide-y divide-gray-100">
@@ -156,6 +166,31 @@
 
     <script src="api.js"></script>
     <script>
+        const SHEET_ID = '1RAYTayHU38-bgiSNFWFnN6Q0RXI1Jg0FhDMPe_b6H8k';
+        const SHEET_NAME = 'Services%20data';
+        const SHEET_GID = '0';
+
+        const PRODUCT_COLUMNS = {
+            'B': 'Compost',
+            'C': 'Vermicompost',
+            'D': 'Green manure',
+            'E': 'Seaweed extract',
+            'F': 'Fish emulsion',
+            'G': 'Bone meal',
+            'H': 'Drones',
+            'I': 'Soil moisture sensors',
+            'J': 'Precision seeding equipment',
+            'K': 'IoT farm monitoring',
+            'L': 'Automatic irrigation system',
+            'M': 'GIS mapping tools',
+            'N': 'Inter-state agri-cargo',
+            'O': 'Smart tractors',
+            'P': 'Cold-chain logistics',
+            'Q': 'Last-mile agri-delivery',
+            'R': 'Bulk commodity transport',
+            'S': 'Reefer van services'
+        };
+
         let currentUser = null;
 
         async function init() {
@@ -239,19 +274,20 @@
                 tbody.innerHTML = '';
 
                 if (supplies.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3" class="px-5 py-3 text-center text-gray-400">No supplies listed yet</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="3" class="px-5 py-3 text-center text-gray-400">No products listed yet</td></tr>';
                     return;
                 }
 
                 supplies.forEach(s => {
-                    const badgeClass = s.category === 'Fertilizer' ? 'bg-blue-100 text-blue-800' :
-                                      s.category === 'Pesticide' ? 'bg-yellow-100 text-yellow-800' :
-                                      'bg-green-100 text-green-800';
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td class="px-5 py-3 font-medium">${s.name}</td>
                         <td class="px-5 py-3 text-green-600 font-bold">₹${s.price}</td>
-                        <td class="px-5 py-3"><span class="text-xs ${badgeClass} px-2 py-1 rounded-full">${s.category}</span></td>
+                        <td class="px-5 py-3">
+                            <button onclick="deleteSupply(${s.id})" class="text-xs text-red-600 hover:text-red-800 font-medium">
+                                <i class="fa-solid fa-trash"></i> Remove
+                            </button>
+                        </td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -262,32 +298,66 @@
 
         async function loadStats() {
             try {
+                console.log('📊 Loading stats for vendor ID:', currentUser.id);
+                
                 const transactions = await api.getTransactions({ vendor_id: currentUser.id });
-                const total = transactions.reduce((sum, t) => sum + t.amount, 0);
-                document.getElementById('totalSpent').textContent = total.toLocaleString();
+                console.log('📦 Transactions loaded:', transactions);
+                console.log('📊 Number of transactions:', transactions.length);
+                
+                const totalSpent = transactions.reduce((sum, t) => {
+                    console.log('💰 Transaction amount:', t.amount, 'for', t.crop);
+                    return sum + (parseFloat(t.amount) || 0);
+                }, 0);
+                
+                console.log('💵 Total spent calculated:', totalSpent);
+                document.getElementById('totalSpent').textContent = totalSpent.toLocaleString('en-IN');
+                
+                // Calculate earnings from supplies
+                const supplies = await api.getSupplies({ vendor_id: currentUser.id });
+                const totalEarnings = supplies.length * 1000; // Placeholder
+                document.getElementById('totalEarned').textContent = totalEarnings.toLocaleString('en-IN');
+                
+                console.log('✅ Stats updated successfully');
             } catch (err) {
-                console.error('Error loading stats:', err);
+                console.error('❌ Error loading stats:', err);
             }
         }
 
         window.handleAccept = async (listingId, farmerId, crop, qty, price) => {
             try {
-                await api.updateListing(listingId, { status: 'Accepted' });
+                console.log('🛒 Accepting order:', { listingId, farmerId, crop, qty, price });
                 
+                // Update listing status
+                await api.updateListing(listingId, { status: 'Accepted' });
+                console.log('✅ Listing status updated');
+                
+                // Calculate total amount
                 const amount = qty * price;
-                await api.createTransaction({
+                console.log('💰 Transaction amount:', amount);
+                
+                // Create transaction
+                const txData = {
                     listingId,
                     farmerId,
                     crop,
                     quantityKg: qty,
                     pricePerKg: price,
                     amount
-                });
+                };
+                console.log('📝 Creating transaction with data:', txData);
+                
+                const result = await api.createTransaction(txData);
+                console.log('✅ Transaction created:', result);
 
                 showToast('Order accepted! Transaction recorded.', 'success');
-                loadPendingListings();
-                loadStats();
+                
+                // Reload data
+                await loadPendingListings();
+                await loadStats();
+                
+                console.log('✅ Order acceptance complete');
             } catch (err) {
+                console.error('❌ Error accepting order:', err);
                 showToast('Failed to accept order', 'error');
             }
         };
@@ -302,18 +372,52 @@
             }
         };
 
-        document.getElementById('addProductForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const name = document.getElementById('pName').value.trim();
-            const category = document.getElementById('pCat').value;
-            const price = parseFloat(document.getElementById('pPrice').value);
-
+        window.deleteSupply = async (supplyId) => {
+            if (!confirm('Are you sure you want to remove this product?')) return;
+            
             try {
-                await api.createSupply({ name, category, price });
-                showToast('Product listed successfully!', 'success');
-                document.getElementById('addProductForm').reset();
+                await api.deleteSupply(supplyId);
+                showToast('Product removed successfully', 'success');
                 loadInventory();
             } catch (err) {
+                showToast('Failed to remove product', 'error');
+            }
+        };
+
+        document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const columnLetter = document.getElementById('productSelect').value;
+            const priceValue = document.getElementById('pPrice').value;
+            const price = parseFloat(priceValue);
+
+            if (!columnLetter) {
+                showToast('Please select a product', 'error');
+                return;
+            }
+
+            if (!priceValue || isNaN(price) || price <= 0) {
+                showToast('Please enter a valid price', 'error');
+                return;
+            }
+
+            const productName = PRODUCT_COLUMNS[columnLetter];
+
+            try {
+                const result = await api.createSupply({ 
+                    name: productName, 
+                    category: columnLetter,
+                    price: price 
+                });
+                
+                if (result.error) {
+                    showToast(result.error, 'error');
+                } else {
+                    showToast('Product listed successfully!', 'success');
+                    document.getElementById('addProductForm').reset();
+                    loadInventory();
+                }
+            } catch (err) {
+                console.error('Error adding product:', err);
                 showToast('Failed to list product', 'error');
             }
         });
@@ -339,6 +443,7 @@
 
         init();
         setInterval(loadPendingListings, 5000);
+        setInterval(loadStats, 10000); // Refresh stats every 10 seconds
     </script>
 </body>
 </html>

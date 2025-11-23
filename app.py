@@ -60,7 +60,7 @@ def init_db():
             vendor_id INTEGER NOT NULL,
             vendor_name TEXT NOT NULL,
             name TEXT NOT NULL,
-            category TEXT NOT NULL CHECK(category IN ('Fertilizer', 'Pesticide', 'Seeds')),
+            category TEXT NOT NULL,
             price REAL NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (vendor_id) REFERENCES users(id)
@@ -339,24 +339,63 @@ def create_supply():
         return jsonify({'error': 'Unauthorized'}), 401
     
     data = request.json
+    
+    if not data or 'name' not in data or 'price' not in data:
+        return jsonify({'error': 'Missing required fields: name and price'}), 400
+    
     conn = get_db()
     cursor = conn.cursor()
     
-    # Get vendor name
-    cursor.execute('SELECT name FROM users WHERE id = ?', (session['user_id'],))
-    vendor = cursor.fetchone()
+    try:
+        # Get vendor name
+        cursor.execute('SELECT name FROM users WHERE id = ?', (session['user_id'],))
+        vendor = cursor.fetchone()
+        
+        if not vendor:
+            conn.close()
+            return jsonify({'error': 'Vendor not found'}), 404
+        
+        cursor.execute('''
+            INSERT INTO supplies (vendor_id, vendor_name, name, category, price)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (session['user_id'], vendor['name'], data['name'],
+              data.get('category', 'General'), data['price']))
+        
+        supply_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        
+        return jsonify({'success': True, 'id': supply_id})
+    except Exception as e:
+        conn.close()
+        print(f"Error creating supply: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/supplies/<int:supply_id>', methods=['DELETE'])
+def delete_supply(supply_id):
+    if 'user_id' not in session or session['user_type'] != 'Vendor':
+        return jsonify({'error': 'Unauthorized'}), 401
     
-    cursor.execute('''
-        INSERT INTO supplies (vendor_id, vendor_name, name, category, price)
-        VALUES (?, ?, ?, ?, ?)
-    ''', (session['user_id'], vendor['name'], data['name'],
-          data['category'], data['price']))
+    conn = get_db()
+    cursor = conn.cursor()
     
-    supply_id = cursor.lastrowid
+    # Verify the supply belongs to this vendor
+    cursor.execute('SELECT vendor_id FROM supplies WHERE id = ?', (supply_id,))
+    supply = cursor.fetchone()
+    
+    if not supply:
+        conn.close()
+        return jsonify({'error': 'Supply not found'}), 404
+    
+    if supply['vendor_id'] != session['user_id']:
+        conn.close()
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    cursor.execute('DELETE FROM supplies WHERE id = ?', (supply_id,))
     conn.commit()
     conn.close()
     
-    return jsonify({'success': True, 'id': supply_id})
+    return jsonify({'success': True})
 
 # Transactions endpoints
 @app.route('/api/transactions', methods=['GET'])
