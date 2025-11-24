@@ -189,6 +189,10 @@
             }
         }
 
+        window.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+
         checkSystemStatus();
         setInterval(checkSystemStatus, 10000);
     </script>

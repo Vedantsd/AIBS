@@ -441,6 +441,10 @@
             setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
         }
 
+        window.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+
         init();
         setInterval(loadPendingListings, 5000);
         setInterval(loadStats, 10000); // Refresh stats every 10 seconds

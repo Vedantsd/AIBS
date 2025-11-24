@@ -68,6 +68,10 @@
       }
     });
 
+    window.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+
     // Check if already logged in as admin
     (async () => {
       try {

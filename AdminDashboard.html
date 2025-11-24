@@ -419,6 +419,10 @@
             window.location.href = 'AdminLogin.html';
         });
 
+        window.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+
         document.getElementById('user-search')?.addEventListener('input', renderUsersTable);
         document.getElementById('user-type-filter')?.addEventListener('change', renderUsersTable);
         document.getElementById('user-status-filter')?.addEventListener('change', renderUsersTable);

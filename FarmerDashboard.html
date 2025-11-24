@@ -419,6 +419,10 @@
             }
         };
 
+        window.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+
         async function loadEarnings() {
             try {
                 const listings = await api.getListings({ farmer_id: currentUser.id, status: 'Accepted' });

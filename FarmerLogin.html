@@ -122,6 +122,10 @@
       }
     });
 
+    window.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+
     (async () => {
       try {
         const user = await api.getCurrentUser();

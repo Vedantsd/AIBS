@@ -265,6 +265,10 @@
             renderProducts(filtered);
         }
 
+        window.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+
         loadProducts();
     </script>
 
